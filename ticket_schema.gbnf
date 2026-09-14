@@ -1,0 +1,11 @@
+root ::= ws "<ticket>" ws request-type ws resource ws scope ws severity ws count ws justification ws "</ticket>" ws
+
+request-type ::= "<request_type>" ws ("access_grant" | "access_revoke" | "tool_install" | "password_reset" | "hardware_request") ws "</request_type>"
+resource ::= "<resource>" [^<]+ "</resource>"
+scope ::= "<scope>" ws ("individual" | "team" | "department" | "org_wide") ws "</scope>"
+severity ::= "<severity>" ws ("low" | "medium" | "high") ws "</severity>"
+count ::= "<requester_count_estimate>" ws ("1" | "~5-10" | "~10-50" | "50+") ws "</requester_count_estimate>"
+justification ::= "<justification>" [^<]+ "</justification>"
+
+ws ::= [ \t\n]*
+
