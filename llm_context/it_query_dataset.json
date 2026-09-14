@@ -1,0 +1,2020 @@
+{
+  "schema": {
+    "fields": {
+      "request_type": "access_grant | access_revoke | tool_install | password_reset | hardware_request",
+      "resource": "free text, e.g. 'Claude Code', 'shared drive', 'VPN'",
+      "scope": "individual | team | department | org_wide",
+      "severity": "low | medium | high",
+      "requester_count_estimate": "1 | ~5-10 | ~10-50 | 50+",
+      "justification": "extracted/summarized reason from the query"
+    },
+    "severity_rule": {
+      "low": "individual scope, non-privileged resource",
+      "medium": "team scope, OR individual + sensitive resource",
+      "high": "department/org scope, OR anything involving admin/root/privileged access regardless of scope"
+    },
+    "gold_label_format": "Each query has gold_scope, gold_severity, gold_count_estimate as LISTS of acceptable values. For unambiguous queries, the list has exactly one value. For ambiguous queries, the list contains all values a reasonable human triager could defensibly assign. A model output counts as CORRECT if it falls within the list; STABLE if repeated runs all fall within the (possibly narrower) set of values the model itself produced; CONSISTENT-CORRECT if both."
+  },
+  "queries": [
+    {
+      "id": "u01",
+      "ambiguous": false,
+      "resource_type": "password_reset",
+      "query": "I forgot my email password, please reset it.",
+      "gold_scope": ["individual"],
+      "gold_severity": ["low"],
+      "gold_count_estimate": ["1"],
+      "notes": "Single named implicit user, no privilege involved."
+    },
+    {
+      "id": "u02",
+      "ambiguous": false,
+      "resource_type": "password_reset",
+      "query": "Reset my VPN password, I'm locked out.",
+      "gold_scope": ["individual"],
+      "gold_severity": ["low"],
+      "gold_count_estimate": ["1"],
+      "notes": "Individual, non-privileged."
+    },
+    {
+      "id": "u03",
+      "ambiguous": false,
+      "resource_type": "software_access",
+      "query": "Please grant me read-only access to the design team's shared Figma project.",
+      "gold_scope": ["individual"],
+      "gold_severity": ["low"],
+      "gold_count_estimate": ["1"],
+      "notes": "Explicit single requester, explicit read-only (non-privileged)."
+    },
+    {
+      "id": "u04",
+      "ambiguous": false,
+      "resource_type": "software_access",
+      "query": "Grant Claude Code access to me only, for personal evaluation.",
+      "gold_scope": ["individual"],
+      "gold_severity": ["low"],
+      "gold_count_estimate": ["1"],
+      "notes": "Explicitly scoped to one person."
+    },
+    {
+      "id": "u05",
+      "ambiguous": false,
+      "resource_type": "vpn_access",
+      "query": "Set up VPN access for our 6-person QA team so they can test the staging environment remotely.",
+      "gold_scope": ["team"],
+      "gold_severity": ["medium"],
+      "gold_count_estimate": ["~5-10"],
+      "notes": "Explicit team size given, non-privileged."
+    },
+    {
+      "id": "u06",
+      "ambiguous": false,
+      "resource_type": "shared_drive_access",
+      "query": "Add the entire Marketing department (about 40 people) to the new shared drive for the product launch.",
+      "gold_scope": ["department"],
+      "gold_severity": ["high"],
+      "gold_count_estimate": ["~10-50"],
+      "notes": "Explicit department scope + explicit count => high per scope rule."
+    },
+    {
+      "id": "u07",
+      "ambiguous": false,
+      "resource_type": "admin_access",
+      "query": "Grant root access on the production database server to our new DBA hire.",
+      "gold_scope": ["individual"],
+      "gold_severity": ["high"],
+      "gold_count_estimate": ["1"],
+      "notes": "Individual but root/admin => high overrides scope, per severity rule."
+    },
+    {
+      "id": "u08",
+      "ambiguous": false,
+      "resource_type": "admin_access",
+      "query": "The entire DevOps team needs sudo access on the deployment cluster.",
+      "gold_scope": ["team"],
+      "gold_severity": ["high"],
+      "gold_count_estimate": ["~5-10"],
+      "notes": "Explicit team + explicit privileged access."
+    },
+    {
+      "id": "u09",
+      "ambiguous": false,
+      "resource_type": "hardware_request",
+      "query": "I need a new laptop charger, mine broke.",
+      "gold_scope": ["individual"],
+      "gold_severity": ["low"],
+      "gold_count_estimate": ["1"],
+      "notes": "Trivial, individual, no privilege."
+    },
+    {
+      "id": "u10",
+      "ambiguous": false,
+      "resource_type": "hardware_request",
+      "query": "We need 15 new monitors for the entire Finance department relocation.",
+      "gold_scope": ["department"],
+      "gold_severity": ["high"],
+      "gold_count_estimate": ["~10-50"],
+      "notes": "Explicit department + count, non-privileged but scope drives severity."
+    },
+    {
+      "id": "u11",
+      "ambiguous": false,
+      "resource_type": "software_access",
+      "query": "Company-wide rollout: give every employee access to the new expense reporting tool.",
+      "gold_scope": ["org_wide"],
+      "gold_severity": ["high"],
+      "gold_count_estimate": ["50+"],
+      "notes": "Explicit org-wide."
+    },
+    {
+      "id": "u12",
+      "ambiguous": false,
+      "resource_type": "vpn_access",
+      "query": "Just need VPN access for myself for the next two weeks while I'm traveling.",
+      "gold_scope": ["individual"],
+      "gold_severity": ["low"],
+      "gold_count_estimate": ["1"],
+      "notes": "Explicit single person, temporary, non-privileged."
+    },
+    {
+      "id": "u13",
+      "ambiguous": false,
+      "resource_type": "shared_drive_access",
+      "query": "Add me to the shared drive for the internal newsletter, I'm helping write this month's issue.",
+      "gold_scope": ["individual"],
+      "gold_severity": ["low"],
+      "gold_count_estimate": ["1"],
+      "notes": "Explicit individual, low sensitivity resource."
+    },
+    {
+      "id": "u14",
+      "ambiguous": false,
+      "resource_type": "admin_access",
+      "query": "Revoke admin access for a contractor whose engagement ended today.",
+      "gold_scope": ["individual"],
+      "gold_severity": ["high"],
+      "gold_count_estimate": ["1"],
+      "notes": "Access_revoke, but admin-level => high regardless of revoke vs grant."
+    },
+    {
+      "id": "u15",
+      "ambiguous": false,
+      "resource_type": "tool_install",
+      "query": "Install Slack on my work laptop.",
+      "gold_scope": ["individual"],
+      "gold_severity": ["low"],
+      "gold_count_estimate": ["1"],
+      "notes": "Trivial individual install."
+    },
+    {
+      "id": "u16",
+      "ambiguous": false,
+      "resource_type": "software_access",
+      "query": "The 8-person legal team needs access to the contract management system.",
+      "gold_scope": ["team"],
+      "gold_severity": ["medium"],
+      "gold_count_estimate": ["~5-10"],
+      "notes": "Explicit team size, sensitive-but-not-admin resource => medium."
+    },
+    {
+      "id": "u17",
+      "ambiguous": false,
+      "resource_type": "password_reset",
+      "query": "Our whole 12-person support team is locked out after the SSO migration, please reset everyone's login.",
+      "gold_scope": ["team"],
+      "gold_severity": ["medium"],
+      "gold_count_estimate": ["~10-50"],
+      "notes": "Explicit team, non-privileged but multi-person => medium."
+    },
+    {
+      "id": "u18",
+      "ambiguous": false,
+      "resource_type": "hardware_request",
+      "query": "Order a replacement mouse for one of the interns.",
+      "gold_scope": ["individual"],
+      "gold_severity": ["low"],
+      "gold_count_estimate": ["1"],
+      "notes": "Trivial, individual."
+    },
+    {
+      "id": "u19",
+      "ambiguous": false,
+      "resource_type": "admin_access",
+      "query": "Give the 3-person security team elevated access to the SIEM dashboard.",
+      "gold_scope": ["team"],
+      "gold_severity": ["high"],
+      "gold_count_estimate": ["~5-10"],
+      "notes": "Team but 'elevated access' implies privileged => high."
+    },
+    {
+      "id": "u20",
+      "ambiguous": false,
+      "resource_type": "shared_drive_access",
+      "query": "Remove access to the HR shared drive for an employee who transferred to a different department.",
+      "gold_scope": ["individual"],
+      "gold_severity": ["low"],
+      "gold_count_estimate": ["1"],
+      "notes": "Single person, revoke, HR drive is sensitive-adjacent but access_revoke of one person is low-risk operationally; gold set could arguably include medium due to HR sensitivity -- kept single-value for training/calibration purposes."
+    },
+    {
+      "id": "a01",
+      "ambiguous": true,
+      "resource_type": "software_access",
+      "query": "Grant access to Claude Code.",
+      "gold_scope": ["individual", "team"],
+      "gold_severity": ["low", "medium"],
+      "gold_count_estimate": ["1", "~5-10"],
+      "notes": "No requester count or team reference given at all -- classic underspecified ticket."
+    },
+    {
+      "id": "a02",
+      "ambiguous": true,
+      "resource_type": "software_access",
+      "query": "Team needs Claude Code access.",
+      "gold_scope": ["team", "department"],
+      "gold_severity": ["medium", "high"],
+      "gold_count_estimate": ["~5-10", "~10-50"],
+      "notes": "'Team' is named but size is completely unspecified -- could be a 3-person squad or a 40-person org unit."
+    },
+    {
+      "id": "a03",
+      "ambiguous": true,
+      "resource_type": "vpn_access",
+      "query": "Set up VPN for the new hires.",
+      "gold_scope": ["individual", "team"],
+      "gold_severity": ["low", "medium"],
+      "gold_count_estimate": ["1", "~5-10"],
+      "notes": "Count of 'new hires' unstated; could be one person or a cohort."
+    },
+    {
+      "id": "a04",
+      "ambiguous": true,
+      "resource_type": "admin_access",
+      "query": "Can someone get me elevated access to the deployment pipeline?",
+      "gold_scope": ["individual"],
+      "gold_severity": ["medium", "high"],
+      "gold_count_estimate": ["1"],
+      "notes": "Scope is clear (individual) but 'elevated access' severity is ambiguous without knowing exact privilege level -- deploy pipeline access could mean CI trigger rights (medium) or full infra admin (high)."
+    },
+    {
+      "id": "a05",
+      "ambiguous": true,
+      "resource_type": "shared_drive_access",
+      "query": "Our group needs access to the finance shared drive for the audit.",
+      "gold_scope": ["team", "department"],
+      "gold_severity": ["medium", "high"],
+      "gold_count_estimate": ["~5-10", "~10-50"],
+      "notes": "'Group' size unstated; finance data sensitivity pushes severity up but scope size is unclear."
+    },
+    {
+      "id": "a06",
+      "ambiguous": true,
+      "resource_type": "hardware_request",
+      "query": "We need new laptops for the new office.",
+      "gold_scope": ["team", "department", "org_wide"],
+      "gold_severity": ["medium", "high"],
+      "gold_count_estimate": ["~5-10", "~10-50", "50+"],
+      "notes": "No indication of new office size -- could be a 5-person satellite office or a 100-person branch."
+    },
+    {
+      "id": "a07",
+      "ambiguous": true,
+      "resource_type": "software_access",
+      "query": "Please give the interns access to the internal wiki.",
+      "gold_scope": ["individual", "team"],
+      "gold_severity": ["low", "medium"],
+      "gold_count_estimate": ["1", "~5-10"],
+      "notes": "'The interns' -- could be one intern or a whole cohort, unstated."
+    },
+    {
+      "id": "a08",
+      "ambiguous": true,
+      "resource_type": "admin_access",
+      "query": "Some folks on the platform team need root on the staging boxes for the sprint.",
+      "gold_scope": ["individual", "team"],
+      "gold_severity": ["high"],
+      "gold_count_estimate": ["1", "~5-10"],
+      "notes": "'Some folks' is vague on count, but root access keeps severity pinned to high regardless."
+    },
+    {
+      "id": "a09",
+      "ambiguous": true,
+      "resource_type": "vpn_access",
+      "query": "Can you set up remote access for the offshore team?",
+      "gold_scope": ["team", "department"],
+      "gold_severity": ["medium", "high"],
+      "gold_count_estimate": ["~5-10", "~10-50"],
+      "notes": "'Offshore team' size unknown -- could be a small pod or a full outsourced department."
+    },
+    {
+      "id": "a10",
+      "ambiguous": true,
+      "resource_type": "shared_drive_access",
+      "query": "Give everyone working on the merger access to the deal room folder.",
+      "gold_scope": ["team", "department"],
+      "gold_severity": ["high"],
+      "gold_count_estimate": ["1", "~5-10", "~10-50"],
+      "notes": "'Everyone working on the merger' is undefined in count; merger/deal data sensitivity keeps severity high regardless of scope ambiguity."
+    },
+    {
+      "id": "a11",
+      "ambiguous": true,
+      "resource_type": "tool_install",
+      "query": "Install the new CRM software for sales.",
+      "gold_scope": ["team", "department"],
+      "gold_severity": ["medium", "high"],
+      "gold_count_estimate": ["~5-10", "~10-50"],
+      "notes": "'Sales' could mean a regional sales team or the entire sales department."
+    },
+    {
+      "id": "a12",
+      "ambiguous": true,
+      "resource_type": "password_reset",
+      "query": "A bunch of people got locked out after the password policy change, can you help?",
+      "gold_scope": ["team", "department", "org_wide"],
+      "gold_severity": ["medium", "high"],
+      "gold_count_estimate": ["~5-10", "~10-50", "50+"],
+      "notes": "'A bunch of people' gives no real signal on scale; policy-wide change suggests could be org-wide."
+    },
+    {
+      "id": "a13",
+      "ambiguous": true,
+      "resource_type": "software_access",
+      "query": "Grant access to the analytics dashboard for the stakeholders on this project.",
+      "gold_scope": ["individual", "team"],
+      "gold_severity": ["low", "medium"],
+      "gold_count_estimate": ["1", "~5-10"],
+      "notes": "'Stakeholders' count and identity unspecified."
+    },
+    {
+      "id": "a14",
+      "ambiguous": true,
+      "resource_type": "admin_access",
+      "query": "Need admin rights on my machine to install some dev tools.",
+      "gold_scope": ["individual"],
+      "gold_severity": ["medium", "high"],
+      "gold_count_estimate": ["1"],
+      "notes": "Scope clear, but local machine admin vs broader system admin creates real severity ambiguity."
+    },
+    {
+      "id": "a15",
+      "ambiguous": true,
+      "resource_type": "shared_drive_access",
+      "query": "The new vendor needs access to some of our shared files.",
+      "gold_scope": ["individual", "team"],
+      "gold_severity": ["medium", "high"],
+      "gold_count_estimate": ["1", "~5-10"],
+      "notes": "External vendor access raises severity uncertainty; 'some shared files' and vendor headcount both unstated."
+    },
+    {
+      "id": "a16",
+      "ambiguous": true,
+      "resource_type": "vpn_access",
+      "query": "Restore VPN for everyone affected by yesterday's outage.",
+      "gold_scope": ["team", "department", "org_wide"],
+      "gold_severity": ["medium", "high"],
+      "gold_count_estimate": ["~5-10", "~10-50", "50+"],
+      "notes": "Outage blast radius unknown from the query alone."
+    },
+    {
+      "id": "a17",
+      "ambiguous": true,
+      "resource_type": "hardware_request",
+      "query": "We need extra hardware for the hackathon this weekend.",
+      "gold_scope": ["team", "department"],
+      "gold_severity": ["low", "medium"],
+      "gold_count_estimate": ["~5-10", "~10-50"],
+      "notes": "Hackathon size and hardware type/quantity unstated."
+    },
+    {
+      "id": "a18",
+      "ambiguous": true,
+      "resource_type": "software_access",
+      "query": "Set up access for the auditors coming in next week.",
+      "gold_scope": ["individual", "team"],
+      "gold_severity": ["medium", "high"],
+      "gold_count_estimate": ["1", "~5-10"],
+      "notes": "External auditors, count unstated, access breadth unstated -- both scope and severity genuinely uncertain."
+    },
+    {
+      "id": "a19",
+      "ambiguous": true,
+      "resource_type": "admin_access",
+      "query": "Escalate my access temporarily, I need to fix something in prod.",
+      "gold_scope": ["individual"],
+      "gold_severity": ["high"],
+      "gold_count_estimate": ["1"],
+      "notes": "Scope and severity fairly clear (prod = high), but 'escalate my access' doesn't specify to what level -- kept as a partial-ambiguity control case."
+    },
+    {
+      "id": "a20",
+      "ambiguous": true,
+      "resource_type": "tool_install",
+      "query": "Roll out the new note-taking app to whoever wants it.",
+      "gold_scope": ["individual", "team", "department", "org_wide"],
+      "gold_severity": ["low", "medium"],
+      "gold_count_estimate": ["1", "~5-10", "~10-50", "50+"],
+      "notes": "Maximally ambiguous scope ('whoever wants it') -- deliberately included as an upper-bound ambiguity stress case."
+    },
+    {
+      "id": "u21",
+      "ambiguous": false,
+      "resource_type": "software_access",
+      "query": "I need read-only access to the production Splunk dashboard to investigate an incident.",
+      "gold_scope": ["individual"],
+      "gold_severity": ["medium"],
+      "gold_count_estimate": ["1"],
+      "notes": "Individual requester, explicit read-only, but Splunk/production data is a sensitive (non-admin) resource => medium."
+    },
+    {
+      "id": "u22",
+      "ambiguous": false,
+      "resource_type": "password_reset",
+      "query": "Reset the service account password for the nightly ETL job — it's failing auth.",
+      "gold_scope": ["individual"],
+      "gold_severity": ["high"],
+      "gold_count_estimate": ["1"],
+      "notes": "Service account credential reset for an automated production job is a privileged operation regardless of human headcount => high."
+    },
+    {
+      "id": "u23",
+      "ambiguous": false,
+      "resource_type": "tool_install",
+      "query": "Please install Docker Desktop on my MacBook so I can run local containers.",
+      "gold_scope": ["individual"],
+      "gold_severity": ["low"],
+      "gold_count_estimate": ["1"],
+      "notes": "Explicit single user, standard developer tool, no privilege escalation."
+    },
+    {
+      "id": "u24",
+      "ambiguous": false,
+      "resource_type": "vpn_access",
+      "query": "All 25 members of the Remote Operations team need VPN credentials before Monday.",
+      "gold_scope": ["team"],
+      "gold_severity": ["high"],
+      "gold_count_estimate": ["~10-50"],
+      "notes": "Explicit count of 25 puts this in ~10-50, which crosses into department-scale scope => high per scope rule."
+    },
+    {
+      "id": "u25",
+      "ambiguous": false,
+      "resource_type": "admin_access",
+      "query": "Revoke all AWS IAM admin rights for the three engineers who left this week.",
+      "gold_scope": ["individual"],
+      "gold_severity": ["high"],
+      "gold_count_estimate": ["~5-10"],
+      "notes": "Explicit small count (3), but IAM admin revocation is a privileged operation => high regardless of scope."
+    },
+    {
+      "id": "u26",
+      "ambiguous": false,
+      "resource_type": "hardware_request",
+      "query": "Ship a standing desk riser to my home office address.",
+      "gold_scope": ["individual"],
+      "gold_severity": ["low"],
+      "gold_count_estimate": ["1"],
+      "notes": "Single person, non-privileged physical hardware, trivially low."
+    },
+    {
+      "id": "u27",
+      "ambiguous": false,
+      "resource_type": "shared_drive_access",
+      "query": "Revoke every employee's access to the legacy SharePoint site that's being decommissioned next Friday.",
+      "gold_scope": ["org_wide"],
+      "gold_severity": ["high"],
+      "gold_count_estimate": ["50+"],
+      "notes": "Explicit org-wide revoke operation => high by scope rule."
+    },
+    {
+      "id": "u28",
+      "ambiguous": false,
+      "resource_type": "software_access",
+      "query": "Add me to the Jira project for the mobile app rewrite — I'm the new PM joining the 4-person team.",
+      "gold_scope": ["individual"],
+      "gold_severity": ["low"],
+      "gold_count_estimate": ["1"],
+      "notes": "Explicit single requester, Jira project access is non-privileged."
+    },
+    {
+      "id": "u29",
+      "ambiguous": false,
+      "resource_type": "admin_access",
+      "query": "Give our new site-reliability engineer full sudo on all staging and prod hosts.",
+      "gold_scope": ["individual"],
+      "gold_severity": ["high"],
+      "gold_count_estimate": ["1"],
+      "notes": "Explicit individual, but full sudo on production hosts is unambiguously privileged => high."
+    },
+    {
+      "id": "u30",
+      "ambiguous": false,
+      "resource_type": "tool_install",
+      "query": "Deploy the endpoint security agent to every laptop in the company as part of the compliance rollout.",
+      "gold_scope": ["org_wide"],
+      "gold_severity": ["high"],
+      "gold_count_estimate": ["50+"],
+      "notes": "Explicit org-wide deployment of a security tool => high by scope."
+    },
+    {
+      "id": "u31",
+      "ambiguous": false,
+      "resource_type": "vpn_access",
+      "query": "Remove VPN access for the intern cohort — all 7 of them finished their placement yesterday.",
+      "gold_scope": ["team"],
+      "gold_severity": ["medium"],
+      "gold_count_estimate": ["~5-10"],
+      "notes": "Explicit count (7) in team range, access revoke of non-privileged resource => medium."
+    },
+    {
+      "id": "u32",
+      "ambiguous": false,
+      "resource_type": "hardware_request",
+      "query": "We need to provision 60 headsets for the new customer support floor opening next month.",
+      "gold_scope": ["department"],
+      "gold_severity": ["high"],
+      "gold_count_estimate": ["50+"],
+      "notes": "Explicit count of 60 (50+) at department/floor scale => high by scope rule."
+    },
+    {
+      "id": "u33",
+      "ambiguous": false,
+      "resource_type": "software_access",
+      "query": "Grant the 3 external pen-testers read access to our GitHub org for the engagement scope.",
+      "gold_scope": ["team"],
+      "gold_severity": ["high"],
+      "gold_count_estimate": ["~5-10"],
+      "notes": "External parties accessing source code repositories is a sensitive/privileged operation regardless of read-only label => high."
+    },
+    {
+      "id": "u34",
+      "ambiguous": false,
+      "resource_type": "password_reset",
+      "query": "I can't log into my Okta account, please send me a reset link.",
+      "gold_scope": ["individual"],
+      "gold_severity": ["low"],
+      "gold_count_estimate": ["1"],
+      "notes": "Single user, SSO password reset is routine and non-privileged."
+    },
+    {
+      "id": "u35",
+      "ambiguous": false,
+      "resource_type": "admin_access",
+      "query": "The entire IT department (~30 staff) needs elevated read access to audit logs across all systems for the annual compliance review.",
+      "gold_scope": ["department"],
+      "gold_severity": ["high"],
+      "gold_count_estimate": ["~10-50"],
+      "notes": "Explicit department scope with explicit count ~30, audit log access is a privileged/sensitive operation => high on both counts."
+    },
+    {
+      "id": "u36",
+      "ambiguous": false,
+      "resource_type": "shared_drive_access",
+      "query": "Add the two new data analysts to the confidential strategy deck folder in Google Drive.",
+      "gold_scope": ["individual"],
+      "gold_severity": ["medium"],
+      "gold_count_estimate": ["~5-10"],
+      "notes": "Explicit small count (2), but a confidential strategy folder is a sensitive (non-admin) resource => medium."
+    },
+    {
+      "id": "u37",
+      "ambiguous": false,
+      "resource_type": "tool_install",
+      "query": "Install PyCharm Professional on my Windows laptop for Python development.",
+      "gold_scope": ["individual"],
+      "gold_severity": ["low"],
+      "gold_count_estimate": ["1"],
+      "notes": "Explicit single user, standard IDE install, no privilege involved."
+    },
+    {
+      "id": "u38",
+      "ambiguous": false,
+      "resource_type": "vpn_access",
+      "query": "Please set up always-on VPN for myself — security required it after my last audit finding.",
+      "gold_scope": ["individual"],
+      "gold_severity": ["low"],
+      "gold_count_estimate": ["1"],
+      "notes": "Explicit single user, VPN is non-privileged access regardless of 'always-on' qualifier."
+    },
+    {
+      "id": "u39",
+      "ambiguous": false,
+      "resource_type": "hardware_request",
+      "query": "The 9-person R&D lab team each needs a GPU workstation for model training.",
+      "gold_scope": ["team"],
+      "gold_severity": ["medium"],
+      "gold_count_estimate": ["~5-10"],
+      "notes": "Explicit count (9) in team range, hardware request is non-privileged => medium by team scope rule."
+    },
+    {
+      "id": "u40",
+      "ambiguous": false,
+      "resource_type": "software_access",
+      "query": "Disable access to the old payroll system for the entire HR department now that migration is complete.",
+      "gold_scope": ["department"],
+      "gold_severity": ["high"],
+      "gold_count_estimate": ["~10-50"],
+      "notes": "Explicit department scope on a payroll system (highly sensitive) => high by scope rule."
+    },
+    {
+      "id": "a21",
+      "ambiguous": true,
+      "resource_type": "software_access",
+      "query": "Can you set up access to the BI tool for my team?",
+      "gold_scope": ["team", "department"],
+      "gold_severity": ["medium", "high"],
+      "gold_count_estimate": ["~5-10", "~10-50"],
+      "notes": "Team size entirely unstated; BI data could be sensitive depending on what dashboards are granted, leaving severity genuinely open."
+    },
+    {
+      "id": "a22",
+      "ambiguous": true,
+      "resource_type": "password_reset",
+      "query": "Some of our remote workers can't get in since the MFA change, please sort it out.",
+      "gold_scope": ["team", "department", "org_wide"],
+      "gold_severity": ["medium", "high"],
+      "gold_count_estimate": ["~5-10", "~10-50", "50+"],
+      "notes": "'Some remote workers' gives no count signal; blast radius of MFA rollout could range from a handful to the entire remote workforce."
+    },
+    {
+      "id": "a23",
+      "ambiguous": true,
+      "resource_type": "vpn_access",
+      "query": "The contractors starting on Monday will need VPN.",
+      "gold_scope": ["individual", "team"],
+      "gold_severity": ["low", "medium"],
+      "gold_count_estimate": ["1", "~5-10"],
+      "notes": "'The contractors' is plural but the count is unstated — could be one person or a small cohort."
+    },
+    {
+      "id": "a24",
+      "ambiguous": true,
+      "resource_type": "admin_access",
+      "query": "We need someone to have database admin access for the upcoming migration project.",
+      "gold_scope": ["individual", "team"],
+      "gold_severity": ["high"],
+      "gold_count_estimate": ["1", "~5-10"],
+      "notes": "Database admin is unambiguously privileged => severity pinned high; but 'someone' is genuinely unclear whether it means one DBA or a migration team."
+    },
+    {
+      "id": "a25",
+      "ambiguous": true,
+      "resource_type": "shared_drive_access",
+      "query": "The people on the rebranding project need access to the design assets folder.",
+      "gold_scope": ["team", "department"],
+      "gold_severity": ["low", "medium"],
+      "gold_count_estimate": ["~5-10", "~10-50"],
+      "notes": "Rebranding project team size unstated; design assets are low-sensitivity so severity is in the low-to-medium range depending on scope."
+    },
+    {
+      "id": "a26",
+      "ambiguous": true,
+      "resource_type": "tool_install",
+      "query": "Install the project management software for the engineering org.",
+      "gold_scope": ["department", "org_wide"],
+      "gold_severity": ["high"],
+      "gold_count_estimate": ["~10-50", "50+"],
+      "notes": "'Engineering org' could mean a single engineering department or all of engineering across the company; scope uncertainty keeps count ambiguous but severity is high either way."
+    },
+    {
+      "id": "a27",
+      "ambiguous": true,
+      "resource_type": "hardware_request",
+      "query": "We're onboarding a bunch of people next quarter and will need hardware.",
+      "gold_scope": ["team", "department", "org_wide"],
+      "gold_severity": ["medium", "high"],
+      "gold_count_estimate": ["~5-10", "~10-50", "50+"],
+      "notes": "'A bunch of people' and no hardware type gives essentially no signal on count or scope."
+    },
+    {
+      "id": "a28",
+      "ambiguous": true,
+      "resource_type": "software_access",
+      "query": "Please provision Salesforce licenses for the people joining from the acquisition.",
+      "gold_scope": ["team", "department"],
+      "gold_severity": ["medium", "high"],
+      "gold_count_estimate": ["~5-10", "~10-50"],
+      "notes": "Acquisition headcount joining is unstated; Salesforce is not admin-level but is business-critical and could be medium or high depending on scope."
+    },
+    {
+      "id": "a29",
+      "ambiguous": true,
+      "resource_type": "admin_access",
+      "query": "I need write access to the config repo to push hotfixes.",
+      "gold_scope": ["individual"],
+      "gold_severity": ["medium", "high"],
+      "gold_count_estimate": ["1"],
+      "notes": "Scope clear (individual), but write access to a production config repo could mean CI bot rights (medium) or infrastructure-level write privilege (high)."
+    },
+    {
+      "id": "a30",
+      "ambiguous": true,
+      "resource_type": "vpn_access",
+      "query": "Enable VPN for the folks doing the data center migration this week.",
+      "gold_scope": ["individual", "team"],
+      "gold_severity": ["low", "medium"],
+      "gold_count_estimate": ["1", "~5-10"],
+      "notes": "Migration crew size unstated; VPN itself is non-privileged so severity hinges purely on whether this is one person or a team."
+    },
+    {
+      "id": "a31",
+      "ambiguous": true,
+      "resource_type": "shared_drive_access",
+      "query": "Give the board members access to the Q3 financials folder before the meeting.",
+      "gold_scope": ["individual", "team"],
+      "gold_severity": ["high"],
+      "gold_count_estimate": ["1", "~5-10"],
+      "notes": "Board size is unstated (could be 3 or 12); financial data sensitivity pins severity to high regardless of scope."
+    },
+    {
+      "id": "a32",
+      "ambiguous": true,
+      "resource_type": "password_reset",
+      "query": "Reset credentials for the shared mailbox accounts.",
+      "gold_scope": ["team", "department"],
+      "gold_severity": ["medium", "high"],
+      "gold_count_estimate": ["~5-10", "~10-50"],
+      "notes": "Number of shared mailboxes unstated; shared/service account credential resets carry higher risk than personal ones, but scope is unclear."
+    },
+    {
+      "id": "a33",
+      "ambiguous": true,
+      "resource_type": "tool_install",
+      "query": "We need the new code review tool set up for the dev teams.",
+      "gold_scope": ["team", "department", "org_wide"],
+      "gold_severity": ["medium", "high"],
+      "gold_count_estimate": ["~5-10", "~10-50", "50+"],
+      "notes": "'Dev teams' is plural but count and whether it means one squad or the entire engineering org is unclear."
+    },
+    {
+      "id": "a34",
+      "ambiguous": true,
+      "resource_type": "software_access",
+      "query": "Can the relevant people on the compliance team get view-only access to the HR system?",
+      "gold_scope": ["individual", "team"],
+      "gold_severity": ["medium", "high"],
+      "gold_count_estimate": ["1", "~5-10"],
+      "notes": "'Relevant people' is vague on count; HR system data is sensitive so severity leans medium-to-high but headcount ambiguity affects scope."
+    },
+    {
+      "id": "a35",
+      "ambiguous": true,
+      "resource_type": "hardware_request",
+      "query": "Order monitors for the team members who requested one.",
+      "gold_scope": ["individual", "team"],
+      "gold_severity": ["low", "medium"],
+      "gold_count_estimate": ["1", "~5-10"],
+      "notes": "Count of requesters unstated — could be one person or a team of people who raised requests; hardware is non-privileged."
+    },
+    {
+      "id": "a36",
+      "ambiguous": true,
+      "resource_type": "admin_access",
+      "query": "The leads on the infrastructure project need access to the cloud console.",
+      "gold_scope": ["individual", "team"],
+      "gold_severity": ["high"],
+      "gold_count_estimate": ["1", "~5-10"],
+      "notes": "Cloud console access is privileged/administrative so severity is pinned high; 'leads' count is unstated (could be one tech lead or several)."
+    },
+    {
+      "id": "a37",
+      "ambiguous": true,
+      "resource_type": "vpn_access",
+      "query": "Set up VPN profiles for anyone who needs to work from home going forward.",
+      "gold_scope": ["team", "department", "org_wide"],
+      "gold_severity": ["medium", "high"],
+      "gold_count_estimate": ["~5-10", "~10-50", "50+"],
+      "notes": "'Anyone who needs to' gives no count bound — open-ended scope that could span a team to the entire org."
+    },
+    {
+      "id": "a38",
+      "ambiguous": true,
+      "resource_type": "software_access",
+      "query": "We want to trial the new AI writing assistant — set it up for whoever in the content team is interested.",
+      "gold_scope": ["individual", "team"],
+      "gold_severity": ["low", "medium"],
+      "gold_count_estimate": ["1", "~5-10"],
+      "notes": "Opt-in scope within a named team makes count ambiguous; the resource is non-privileged keeping severity low-to-medium."
+    },
+    {
+      "id": "a39",
+      "ambiguous": true,
+      "resource_type": "shared_drive_access",
+      "query": "Remove access to the project archive folders for employees who've moved on.",
+      "gold_scope": ["individual", "team", "department"],
+      "gold_severity": ["low", "medium"],
+      "gold_count_estimate": ["1", "~5-10", "~10-50"],
+      "notes": "Number of departed employees is unstated; archive folders are low-sensitivity but scope range is wide."
+    },
+    {
+      "id": "a40",
+      "ambiguous": true,
+      "resource_type": "admin_access",
+      "query": "Grant production access to the engineers handling the on-call rotation.",
+      "gold_scope": ["team"],
+      "gold_severity": ["high"],
+      "gold_count_estimate": ["~5-10", "~10-50"],
+      "notes": "Scope is team-level (on-call rotation) but rotation size is unstated; production access is privileged => severity pinned high, count range open."
+    },
+    {
+      "id": "u41",
+      "ambiguous": false,
+      "resource_type": "software_access",
+      "query": "Please give me editor access to the company Confluence space for the onboarding docs project.",
+      "gold_scope": ["individual"],
+      "gold_severity": ["low"],
+      "gold_count_estimate": ["1"],
+      "notes": "Single requester, editor access to an internal wiki is non-privileged."
+    },
+    {
+      "id": "u42",
+      "ambiguous": false,
+      "resource_type": "admin_access",
+      "query": "Add our new Kubernetes admin to the cluster-admin role in the prod namespace.",
+      "gold_scope": ["individual"],
+      "gold_severity": ["high"],
+      "gold_count_estimate": ["1"],
+      "notes": "Cluster-admin in production is unambiguously privileged => high regardless of single-person scope."
+    },
+    {
+      "id": "u43",
+      "ambiguous": false,
+      "resource_type": "tool_install",
+      "query": "Deploy the MDM profile to all 120 company-issued iPhones.",
+      "gold_scope": ["org_wide"],
+      "gold_severity": ["high"],
+      "gold_count_estimate": ["50+"],
+      "notes": "Explicit org-wide mobile device management rollout => high by scope rule."
+    },
+    {
+      "id": "u44",
+      "ambiguous": false,
+      "resource_type": "password_reset",
+      "query": "The shared Twitter/X account for our marketing team is locked — please reset the password.",
+      "gold_scope": ["team"],
+      "gold_severity": ["medium"],
+      "gold_count_estimate": ["~5-10"],
+      "notes": "Shared social media account reset, team scope, not a privileged system => medium."
+    },
+    {
+      "id": "u45",
+      "ambiguous": false,
+      "resource_type": "hardware_request",
+      "query": "I need a USB-C hub for my desk setup.",
+      "gold_scope": ["individual"],
+      "gold_severity": ["low"],
+      "gold_count_estimate": ["1"],
+      "notes": "Trivial single-person peripheral request, no privilege."
+    },
+    {
+      "id": "u46",
+      "ambiguous": false,
+      "resource_type": "shared_drive_access",
+      "query": "Grant the 5-person executive leadership team access to the board materials folder in SharePoint.",
+      "gold_scope": ["team"],
+      "gold_severity": ["high"],
+      "gold_count_estimate": ["~5-10"],
+      "notes": "Board materials are highly sensitive; sensitivity of the resource pins severity to high regardless of team scope."
+    },
+    {
+      "id": "u47",
+      "ambiguous": false,
+      "resource_type": "vpn_access",
+      "query": "Set up split-tunnel VPN for our 22-person field sales team so they can access CRM while on the road.",
+      "gold_scope": ["department"],
+      "gold_severity": ["high"],
+      "gold_count_estimate": ["~10-50"],
+      "notes": "Explicit count of 22 (department-scale ~10-50) => high by scope rule."
+    },
+    {
+      "id": "u48",
+      "ambiguous": false,
+      "resource_type": "software_access",
+      "query": "Revoke my access to the legacy payroll portal — I transferred to a new role and no longer need it.",
+      "gold_scope": ["individual"],
+      "gold_severity": ["medium"],
+      "gold_count_estimate": ["1"],
+      "notes": "Individual self-revoke, but payroll portal is a sensitive (non-admin) resource => medium."
+    },
+    {
+      "id": "u49",
+      "ambiguous": false,
+      "resource_type": "admin_access",
+      "query": "Temporarily grant me write access to the WAF rules so I can whitelist our new CDN IP range.",
+      "gold_scope": ["individual"],
+      "gold_severity": ["high"],
+      "gold_count_estimate": ["1"],
+      "notes": "WAF rule management is a privileged security operation => high even for a single user."
+    },
+    {
+      "id": "u50",
+      "ambiguous": false,
+      "resource_type": "tool_install",
+      "query": "Install Wireshark on the two SOC analyst workstations for packet capture analysis.",
+      "gold_scope": ["team"],
+      "gold_severity": ["medium"],
+      "gold_count_estimate": ["~5-10"],
+      "notes": "Small team (2 machines) install of a specialist tool; not admin-privileged at system level => medium by team scope."
+    },
+    {
+      "id": "u51",
+      "ambiguous": false,
+      "resource_type": "software_access",
+      "query": "Add me as a read-only collaborator on the Tableau workbook for the sales pipeline metrics.",
+      "gold_scope": ["individual"],
+      "gold_severity": ["low"],
+      "gold_count_estimate": ["1"],
+      "notes": "Individual, explicit read-only, business analytics tool is non-privileged."
+    },
+    {
+      "id": "u52",
+      "ambiguous": false,
+      "resource_type": "hardware_request",
+      "query": "Order 8 ergonomic keyboards for the accessibility program participants.",
+      "gold_scope": ["team"],
+      "gold_severity": ["medium"],
+      "gold_count_estimate": ["~5-10"],
+      "notes": "Explicit count of 8 in team range, non-privileged hardware => medium by team scope."
+    },
+    {
+      "id": "u53",
+      "ambiguous": false,
+      "resource_type": "password_reset",
+      "query": "I need to reset the admin password for our local Jenkins server — the previous admin left.",
+      "gold_scope": ["individual"],
+      "gold_severity": ["high"],
+      "gold_count_estimate": ["1"],
+      "notes": "Jenkins admin credential is a privileged system account => high regardless of single-user scope."
+    },
+    {
+      "id": "u54",
+      "ambiguous": false,
+      "resource_type": "shared_drive_access",
+      "query": "Remove the departed CFO from the financial forecasts shared drive immediately.",
+      "gold_scope": ["individual"],
+      "gold_severity": ["high"],
+      "gold_count_estimate": ["1"],
+      "notes": "Financial data at CFO level is highly sensitive; emergency revoke of privileged-adjacent access => high."
+    },
+    {
+      "id": "u55",
+      "ambiguous": false,
+      "resource_type": "software_access",
+      "query": "Provision GitHub Enterprise seats for all 45 engineers in the product department.",
+      "gold_scope": ["department"],
+      "gold_severity": ["high"],
+      "gold_count_estimate": ["~10-50"],
+      "notes": "Explicit department scope with explicit count (45) in ~10-50 range => high by scope rule."
+    },
+    {
+      "id": "u56",
+      "ambiguous": false,
+      "resource_type": "admin_access",
+      "query": "Grant our new CISO admin access to the SOC2 audit tooling platform.",
+      "gold_scope": ["individual"],
+      "gold_severity": ["high"],
+      "gold_count_estimate": ["1"],
+      "notes": "Admin access to security audit tooling is privileged => high even for one person."
+    },
+    {
+      "id": "u57",
+      "ambiguous": false,
+      "resource_type": "tool_install",
+      "query": "Please install IntelliJ IDEA on my development machine.",
+      "gold_scope": ["individual"],
+      "gold_severity": ["low"],
+      "gold_count_estimate": ["1"],
+      "notes": "Trivial individual IDE install, no privilege."
+    },
+    {
+      "id": "u58",
+      "ambiguous": false,
+      "resource_type": "vpn_access",
+      "query": "Disable VPN access for all third-party vendors now that the project has concluded.",
+      "gold_scope": ["team"],
+      "gold_severity": ["high"],
+      "gold_count_estimate": ["~5-10"],
+      "notes": "External access revocation is a privileged-adjacent operation; vendor count implies a small group => high due to external party sensitivity."
+    },
+    {
+      "id": "u59",
+      "ambiguous": false,
+      "resource_type": "hardware_request",
+      "query": "The entire 55-person operations center needs new headsets as part of the office upgrade.",
+      "gold_scope": ["department"],
+      "gold_severity": ["high"],
+      "gold_count_estimate": ["50+"],
+      "notes": "Explicit count of 55 (50+) at department scale => high by scope rule."
+    },
+    {
+      "id": "u60",
+      "ambiguous": false,
+      "resource_type": "software_access",
+      "query": "Give the compliance officer view-only access to the SIEM dashboard for monthly reporting.",
+      "gold_scope": ["individual"],
+      "gold_severity": ["medium"],
+      "gold_count_estimate": ["1"],
+      "notes": "Individual, view-only, but SIEM contains sensitive security event data => medium by sensitive-resource rule."
+    },
+    {
+      "id": "u61",
+      "ambiguous": false,
+      "resource_type": "admin_access",
+      "query": "Revoke the former IT manager's admin rights across all systems — they resigned today.",
+      "gold_scope": ["individual"],
+      "gold_severity": ["high"],
+      "gold_count_estimate": ["1"],
+      "notes": "Admin-level revoke across all systems for a departing privileged user => high, urgent."
+    },
+    {
+      "id": "u62",
+      "ambiguous": false,
+      "resource_type": "password_reset",
+      "query": "Reset my Google Workspace password, I got locked out after too many wrong attempts.",
+      "gold_scope": ["individual"],
+      "gold_severity": ["low"],
+      "gold_count_estimate": ["1"],
+      "notes": "Standard individual SSO password reset, non-privileged."
+    },
+    {
+      "id": "u63",
+      "ambiguous": false,
+      "resource_type": "tool_install",
+      "query": "Push the VPN client update to all laptops in the finance department — 35 machines total.",
+      "gold_scope": ["department"],
+      "gold_severity": ["high"],
+      "gold_count_estimate": ["~10-50"],
+      "notes": "Explicit department-wide software push to 35 machines => high by scope."
+    },
+    {
+      "id": "u64",
+      "ambiguous": false,
+      "resource_type": "shared_drive_access",
+      "query": "Add our external legal counsel (2 attorneys) to the litigation documents folder with read-only access.",
+      "gold_scope": ["team"],
+      "gold_severity": ["high"],
+      "gold_count_estimate": ["~5-10"],
+      "notes": "External parties accessing litigation documents is highly sensitive => high regardless of read-only."
+    },
+    {
+      "id": "u65",
+      "ambiguous": false,
+      "resource_type": "software_access",
+      "query": "I need a personal Zoom Pro license for external client calls.",
+      "gold_scope": ["individual"],
+      "gold_severity": ["low"],
+      "gold_count_estimate": ["1"],
+      "notes": "Single user, standard video conferencing tool, non-privileged."
+    },
+    {
+      "id": "u66",
+      "ambiguous": false,
+      "resource_type": "admin_access",
+      "query": "Give the new DevSecOps engineer access to manage firewall rules in our cloud environment.",
+      "gold_scope": ["individual"],
+      "gold_severity": ["high"],
+      "gold_count_estimate": ["1"],
+      "notes": "Firewall rule management is a privileged network security operation => high."
+    },
+    {
+      "id": "u67",
+      "ambiguous": false,
+      "resource_type": "hardware_request",
+      "query": "Request a webcam for my home office — I don't have one for video calls.",
+      "gold_scope": ["individual"],
+      "gold_severity": ["low"],
+      "gold_count_estimate": ["1"],
+      "notes": "Trivial individual hardware request, non-privileged."
+    },
+    {
+      "id": "u68",
+      "ambiguous": false,
+      "resource_type": "vpn_access",
+      "query": "Enable VPN access for myself while I'm at the partner conference next week.",
+      "gold_scope": ["individual"],
+      "gold_severity": ["low"],
+      "gold_count_estimate": ["1"],
+      "notes": "Single user, temporary, non-privileged VPN access."
+    },
+    {
+      "id": "u69",
+      "ambiguous": false,
+      "resource_type": "software_access",
+      "query": "Add all 80 employees company-wide to the new mandatory security awareness training platform.",
+      "gold_scope": ["org_wide"],
+      "gold_severity": ["high"],
+      "gold_count_estimate": ["50+"],
+      "notes": "Explicit org-wide (80 employees) provisioning => high by scope rule."
+    },
+    {
+      "id": "u70",
+      "ambiguous": false,
+      "resource_type": "admin_access",
+      "query": "Promote the lead data engineer to owner role on the BigQuery project for the data lake migration.",
+      "gold_scope": ["individual"],
+      "gold_severity": ["high"],
+      "gold_count_estimate": ["1"],
+      "notes": "Owner-level role on a cloud data project is a privileged access grant => high."
+    },
+    {
+      "id": "u71",
+      "ambiguous": false,
+      "resource_type": "tool_install",
+      "query": "Install Postman on my laptop so I can test our internal APIs.",
+      "gold_scope": ["individual"],
+      "gold_severity": ["low"],
+      "gold_count_estimate": ["1"],
+      "notes": "Individual developer tool install, no privilege involved."
+    },
+    {
+      "id": "u72",
+      "ambiguous": false,
+      "resource_type": "password_reset",
+      "query": "Our CI/CD service account token expired and pipelines are failing — please rotate it.",
+      "gold_scope": ["individual"],
+      "gold_severity": ["high"],
+      "gold_count_estimate": ["1"],
+      "notes": "Service account token for CI/CD is a production-critical privileged credential => high."
+    },
+    {
+      "id": "u73",
+      "ambiguous": false,
+      "resource_type": "shared_drive_access",
+      "query": "Create a shared folder for the new product launch and give all 11 members of the launch task force access.",
+      "gold_scope": ["team"],
+      "gold_severity": ["medium"],
+      "gold_count_estimate": ["~10-50"],
+      "notes": "Explicit count of 11 (crosses into ~10-50), team scope, non-sensitive resource => medium."
+    },
+    {
+      "id": "u74",
+      "ambiguous": false,
+      "resource_type": "software_access",
+      "query": "Disable the developer's access to production systems immediately — they are under an HR investigation.",
+      "gold_scope": ["individual"],
+      "gold_severity": ["high"],
+      "gold_count_estimate": ["1"],
+      "notes": "Emergency revoke of production access for an individual under investigation => high urgency and sensitivity."
+    },
+    {
+      "id": "u75",
+      "ambiguous": false,
+      "resource_type": "hardware_request",
+      "query": "We need 4 network switches for the new server room we're setting up.",
+      "gold_scope": ["team"],
+      "gold_severity": ["medium"],
+      "gold_count_estimate": ["~5-10"],
+      "notes": "Team-scale infrastructure hardware (4 items), non-privileged => medium."
+    },
+    {
+      "id": "u76",
+      "ambiguous": false,
+      "resource_type": "vpn_access",
+      "query": "Extend VPN access for our 3 long-term contractors for another 6 months.",
+      "gold_scope": ["team"],
+      "gold_severity": ["medium"],
+      "gold_count_estimate": ["~5-10"],
+      "notes": "Explicit count (3), team scope, standard VPN extension is non-privileged => medium."
+    },
+    {
+      "id": "u77",
+      "ambiguous": false,
+      "resource_type": "admin_access",
+      "query": "Assign the principal engineer owner-level access to all repositories in our GitHub Enterprise org.",
+      "gold_scope": ["individual"],
+      "gold_severity": ["high"],
+      "gold_count_estimate": ["1"],
+      "notes": "Org-level owner on GitHub Enterprise is a privileged administrative role => high."
+    },
+    {
+      "id": "u78",
+      "ambiguous": false,
+      "resource_type": "tool_install",
+      "query": "Install the certificate management tool on all 18 servers in the production cluster.",
+      "gold_scope": ["department"],
+      "gold_severity": ["high"],
+      "gold_count_estimate": ["~10-50"],
+      "notes": "Production infrastructure-wide tool install on 18 servers is privileged and department-scale => high."
+    },
+    {
+      "id": "u79",
+      "ambiguous": false,
+      "resource_type": "software_access",
+      "query": "Grant my new direct report read access to our project management tool's backlog view.",
+      "gold_scope": ["individual"],
+      "gold_severity": ["low"],
+      "gold_count_estimate": ["1"],
+      "notes": "Explicit single user, read access to a non-sensitive project tracker."
+    },
+    {
+      "id": "u80",
+      "ambiguous": false,
+      "resource_type": "password_reset",
+      "query": "Reset the PagerDuty account for our on-call engineer — they can't acknowledge alerts.",
+      "gold_scope": ["individual"],
+      "gold_severity": ["medium"],
+      "gold_count_estimate": ["1"],
+      "notes": "PagerDuty incident response tool is not admin/privileged but is operationally sensitive => medium."
+    },
+    {
+      "id": "u81",
+      "ambiguous": false,
+      "resource_type": "shared_drive_access",
+      "query": "Give our new hire in Legal read-only access to the contract templates folder.",
+      "gold_scope": ["individual"],
+      "gold_severity": ["low"],
+      "gold_count_estimate": ["1"],
+      "notes": "Individual, read-only, contract templates are internal reference docs => low."
+    },
+    {
+      "id": "u82",
+      "ambiguous": false,
+      "resource_type": "admin_access",
+      "query": "Enable MFA enforcement for all 200 users in the organization.",
+      "gold_scope": ["org_wide"],
+      "gold_severity": ["high"],
+      "gold_count_estimate": ["50+"],
+      "notes": "Org-wide security policy enforcement affecting all 200 users => high by scope."
+    },
+    {
+      "id": "u83",
+      "ambiguous": false,
+      "resource_type": "hardware_request",
+      "query": "I need a replacement power supply unit for my desktop workstation — it died this morning.",
+      "gold_scope": ["individual"],
+      "gold_severity": ["low"],
+      "gold_count_estimate": ["1"],
+      "notes": "Single person, emergency hardware replacement, non-privileged."
+    },
+    {
+      "id": "u84",
+      "ambiguous": false,
+      "resource_type": "software_access",
+      "query": "Provision Snowflake data warehouse access for the 7 members of the analytics team.",
+      "gold_scope": ["team"],
+      "gold_severity": ["medium"],
+      "gold_count_estimate": ["~5-10"],
+      "notes": "Explicit team of 7, data warehouse access is sensitive but not admin-level => medium."
+    },
+    {
+      "id": "u85",
+      "ambiguous": false,
+      "resource_type": "vpn_access",
+      "query": "Remove VPN credentials for all employees who haven't logged in for over 90 days — there are 12 of them.",
+      "gold_scope": ["team"],
+      "gold_severity": ["medium"],
+      "gold_count_estimate": ["~10-50"],
+      "notes": "Explicit count of 12 (crosses into ~10-50), bulk VPN revoke for inactive accounts => medium."
+    },
+    {
+      "id": "u86",
+      "ambiguous": false,
+      "resource_type": "tool_install",
+      "query": "Set up the new time-tracking software for everyone in the consulting practice — that's 14 people.",
+      "gold_scope": ["team"],
+      "gold_severity": ["medium"],
+      "gold_count_estimate": ["~10-50"],
+      "notes": "Explicit count of 14, team/practice scope, non-privileged tool => medium."
+    },
+    {
+      "id": "u87",
+      "ambiguous": false,
+      "resource_type": "admin_access",
+      "query": "Add myself as a secondary admin on the Google Analytics property for the marketing site.",
+      "gold_scope": ["individual"],
+      "gold_severity": ["high"],
+      "gold_count_estimate": ["1"],
+      "notes": "Admin-level access on Google Analytics (business data control) is privileged => high."
+    },
+    {
+      "id": "u88",
+      "ambiguous": false,
+      "resource_type": "password_reset",
+      "query": "The wireless access point admin portal password needs to be reset after the network upgrade.",
+      "gold_scope": ["individual"],
+      "gold_severity": ["high"],
+      "gold_count_estimate": ["1"],
+      "notes": "Network infrastructure admin credential reset is a privileged operation => high."
+    },
+    {
+      "id": "u89",
+      "ambiguous": false,
+      "resource_type": "shared_drive_access",
+      "query": "Remove access to the merger due diligence folder for all external advisors now that the deal closed — 9 people total.",
+      "gold_scope": ["team"],
+      "gold_severity": ["high"],
+      "gold_count_estimate": ["~5-10"],
+      "notes": "Explicit count (9), highly sensitive deal data, external parties => high."
+    },
+    {
+      "id": "u90",
+      "ambiguous": false,
+      "resource_type": "software_access",
+      "query": "I'd like access to the internal API gateway developer portal to publish a new microservice.",
+      "gold_scope": ["individual"],
+      "gold_severity": ["medium"],
+      "gold_count_estimate": ["1"],
+      "notes": "Individual developer portal access is not admin-level but touches internal infrastructure => medium."
+    },
+    {
+      "id": "u91",
+      "ambiguous": false,
+      "resource_type": "hardware_request",
+      "query": "Provision 3 dedicated video conferencing units for the new meeting rooms in building B.",
+      "gold_scope": ["team"],
+      "gold_severity": ["medium"],
+      "gold_count_estimate": ["~5-10"],
+      "notes": "Small count (3 units), team-level infrastructure hardware, non-privileged => medium."
+    },
+    {
+      "id": "u92",
+      "ambiguous": false,
+      "resource_type": "tool_install",
+      "query": "Install the PDF signing software for the 6 members of the legal contracts team.",
+      "gold_scope": ["team"],
+      "gold_severity": ["medium"],
+      "gold_count_estimate": ["~5-10"],
+      "notes": "Explicit team of 6, standard business software => medium."
+    },
+    {
+      "id": "u93",
+      "ambiguous": false,
+      "resource_type": "admin_access",
+      "query": "Grant the security analyst read-only access to all CloudTrail logs in our AWS account.",
+      "gold_scope": ["individual"],
+      "gold_severity": ["high"],
+      "gold_count_estimate": ["1"],
+      "notes": "CloudTrail logs span all AWS activity; access to that audit trail is a sensitive privileged operation => high."
+    },
+    {
+      "id": "u94",
+      "ambiguous": false,
+      "resource_type": "vpn_access",
+      "query": "Set up site-to-site VPN between our HQ and the new Chicago office of 30 staff.",
+      "gold_scope": ["department"],
+      "gold_severity": ["high"],
+      "gold_count_estimate": ["~10-50"],
+      "notes": "Network-level infrastructure change affecting a department of 30 is privileged and department-scale => high."
+    },
+    {
+      "id": "u95",
+      "ambiguous": false,
+      "resource_type": "software_access",
+      "query": "Add our third-party accounting firm (4 auditors) to the read-only view of our QuickBooks account.",
+      "gold_scope": ["team"],
+      "gold_severity": ["high"],
+      "gold_count_estimate": ["~5-10"],
+      "notes": "External parties with financial system access => high due to sensitive data regardless of read-only."
+    },
+    {
+      "id": "u96",
+      "ambiguous": false,
+      "resource_type": "password_reset",
+      "query": "Reset the Grafana admin password — the monitoring dashboards are inaccessible.",
+      "gold_scope": ["individual"],
+      "gold_severity": ["high"],
+      "gold_count_estimate": ["1"],
+      "notes": "Grafana admin credential controls monitoring infrastructure; admin reset is privileged => high."
+    },
+    {
+      "id": "u97",
+      "ambiguous": false,
+      "resource_type": "hardware_request",
+      "query": "I need a Yubikey for hardware-based MFA on my account.",
+      "gold_scope": ["individual"],
+      "gold_severity": ["low"],
+      "gold_count_estimate": ["1"],
+      "notes": "Single-person hardware security token request, non-privileged provisioning."
+    },
+    {
+      "id": "u98",
+      "ambiguous": false,
+      "resource_type": "shared_drive_access",
+      "query": "Add all new summer interns (there are 20 of them) to the onboarding materials shared folder.",
+      "gold_scope": ["team"],
+      "gold_severity": ["medium"],
+      "gold_count_estimate": ["~10-50"],
+      "notes": "Explicit count of 20 (team/~10-50 range), low-sensitivity onboarding docs => medium."
+    },
+    {
+      "id": "u99",
+      "ambiguous": false,
+      "resource_type": "admin_access",
+      "query": "Deprovision all access for the entire outsourced IT support team whose contract ended today — 6 technicians.",
+      "gold_scope": ["team"],
+      "gold_severity": ["high"],
+      "gold_count_estimate": ["~5-10"],
+      "notes": "Explicit count (6), offboarding privileged external IT staff is a high-risk operation => high."
+    },
+    {
+      "id": "u100",
+      "ambiguous": false,
+      "resource_type": "tool_install",
+      "query": "Deploy the approved ad-blocker extension to all machines in the legal department — about 28 laptops.",
+      "gold_scope": ["department"],
+      "gold_severity": ["high"],
+      "gold_count_estimate": ["~10-50"],
+      "notes": "Explicit department-wide software deployment (28 machines) => high by scope rule."
+    },
+    {
+      "id": "a41",
+      "ambiguous": true,
+      "resource_type": "software_access",
+      "query": "The research team wants access to the external data provider API.",
+      "gold_scope": ["team", "department"],
+      "gold_severity": ["medium", "high"],
+      "gold_count_estimate": ["~5-10", "~10-50"],
+      "notes": "Research team size unstated; external API access sensitivity depends on data type, leaving severity genuinely open."
+    },
+    {
+      "id": "a42",
+      "ambiguous": true,
+      "resource_type": "admin_access",
+      "query": "Can you promote some of our senior engineers to maintainer on the main repo?",
+      "gold_scope": ["individual", "team"],
+      "gold_severity": ["medium", "high"],
+      "gold_count_estimate": ["1", "~5-10"],
+      "notes": "'Some' senior engineers is vague on count; maintainer privilege level (force-push vs full admin) also unclear."
+    },
+    {
+      "id": "a43",
+      "ambiguous": true,
+      "resource_type": "hardware_request",
+      "query": "We need extra monitors for the people joining us from the partner office.",
+      "gold_scope": ["individual", "team"],
+      "gold_severity": ["low", "medium"],
+      "gold_count_estimate": ["1", "~5-10"],
+      "notes": "Count of incoming partner staff unstated; hardware is non-privileged so severity hinges entirely on scope."
+    },
+    {
+      "id": "a44",
+      "ambiguous": true,
+      "resource_type": "vpn_access",
+      "query": "Set up VPN access for the project managers working on the digital transformation initiative.",
+      "gold_scope": ["team", "department"],
+      "gold_severity": ["medium", "high"],
+      "gold_count_estimate": ["~5-10", "~10-50"],
+      "notes": "'Project managers on the initiative' could be a small workstream or a cross-department program office."
+    },
+    {
+      "id": "a45",
+      "ambiguous": true,
+      "resource_type": "password_reset",
+      "query": "Several people on the night shift got locked out — can you reset them?",
+      "gold_scope": ["team", "department"],
+      "gold_severity": ["medium", "high"],
+      "gold_count_estimate": ["~5-10", "~10-50"],
+      "notes": "'Several' is vague; night shift size unknown — could be a handful or a large operations floor."
+    },
+    {
+      "id": "a46",
+      "ambiguous": true,
+      "resource_type": "shared_drive_access",
+      "query": "Give the stakeholders access to the project retrospective documents.",
+      "gold_scope": ["individual", "team"],
+      "gold_severity": ["low", "medium"],
+      "gold_count_estimate": ["1", "~5-10"],
+      "notes": "'Stakeholders' is unspecified in count; retrospective docs are generally low-sensitivity but scope is unclear."
+    },
+    {
+      "id": "a47",
+      "ambiguous": true,
+      "resource_type": "tool_install",
+      "query": "We'd like to roll out the new design system toolkit to the relevant designers.",
+      "gold_scope": ["individual", "team"],
+      "gold_severity": ["low", "medium"],
+      "gold_count_estimate": ["1", "~5-10"],
+      "notes": "'Relevant designers' count unstated; toolkit install is non-privileged so severity depends purely on scope size."
+    },
+    {
+      "id": "a48",
+      "ambiguous": true,
+      "resource_type": "software_access",
+      "query": "Grant Tableau access to whoever needs it in the business intelligence group.",
+      "gold_scope": ["team", "department"],
+      "gold_severity": ["medium", "high"],
+      "gold_count_estimate": ["~5-10", "~10-50"],
+      "notes": "Open-ended 'whoever needs it' within a BI group; BI data sensitivity and group size both unspecified."
+    },
+    {
+      "id": "a49",
+      "ambiguous": true,
+      "resource_type": "admin_access",
+      "query": "The team leads need elevated permissions to manage their own AWS cost allocation tags.",
+      "gold_scope": ["individual", "team"],
+      "gold_severity": ["medium", "high"],
+      "gold_count_estimate": ["1", "~5-10"],
+      "notes": "Number of team leads unstated; AWS permission scope (just cost tags vs broader IAM) creates severity uncertainty."
+    },
+    {
+      "id": "a50",
+      "ambiguous": true,
+      "resource_type": "hardware_request",
+      "query": "Can we get some additional hard drives for the engineering team?",
+      "gold_scope": ["team", "department"],
+      "gold_severity": ["low", "medium"],
+      "gold_count_estimate": ["~5-10", "~10-50"],
+      "notes": "Quantity and team size both unstated; storage hardware is non-privileged."
+    },
+    {
+      "id": "a51",
+      "ambiguous": true,
+      "resource_type": "vpn_access",
+      "query": "Provision remote access for the staff helping with the product launch next month.",
+      "gold_scope": ["team", "department"],
+      "gold_severity": ["medium", "high"],
+      "gold_count_estimate": ["~5-10", "~10-50"],
+      "notes": "Product launch staff count and role distribution unstated; scope could span a lean team or a cross-org effort."
+    },
+    {
+      "id": "a52",
+      "ambiguous": true,
+      "resource_type": "password_reset",
+      "query": "The API keys for our integration services need to be rotated.",
+      "gold_scope": ["individual", "team"],
+      "gold_severity": ["high"],
+      "gold_count_estimate": ["1", "~5-10"],
+      "notes": "API key rotation for integration services is a privileged operation pinning severity to high; number of services/keys unstated."
+    },
+    {
+      "id": "a53",
+      "ambiguous": true,
+      "resource_type": "shared_drive_access",
+      "query": "The people who worked on the RFP need to be removed from the tender documents folder now it's awarded.",
+      "gold_scope": ["individual", "team"],
+      "gold_severity": ["medium", "high"],
+      "gold_count_estimate": ["1", "~5-10"],
+      "notes": "RFP team size unstated; tender/procurement documents are sensitive, leaving severity in the medium-to-high range."
+    },
+    {
+      "id": "a54",
+      "ambiguous": true,
+      "resource_type": "tool_install",
+      "query": "Set up the new compliance tracking tool for the people in regulatory affairs.",
+      "gold_scope": ["team", "department"],
+      "gold_severity": ["medium", "high"],
+      "gold_count_estimate": ["~5-10", "~10-50"],
+      "notes": "Regulatory affairs team size unstated; compliance tool may handle sensitive regulated data, keeping severity uncertain."
+    },
+    {
+      "id": "a55",
+      "ambiguous": true,
+      "resource_type": "software_access",
+      "query": "We need to give read access to our source code for the due diligence reviewers.",
+      "gold_scope": ["individual", "team"],
+      "gold_severity": ["high"],
+      "gold_count_estimate": ["1", "~5-10"],
+      "notes": "Source code access for external due diligence is highly sensitive pinning severity high; reviewer headcount unstated."
+    },
+    {
+      "id": "a56",
+      "ambiguous": true,
+      "resource_type": "admin_access",
+      "query": "Some of our ops folks need access to the orchestration layer to debug deployments.",
+      "gold_scope": ["individual", "team"],
+      "gold_severity": ["high"],
+      "gold_count_estimate": ["1", "~5-10"],
+      "notes": "Orchestration layer access is privileged => high pinned; 'some ops folks' leaves count vague."
+    },
+    {
+      "id": "a57",
+      "ambiguous": true,
+      "resource_type": "hardware_request",
+      "query": "Arrange laptops for whoever is moving to the hot-desking floor next month.",
+      "gold_scope": ["team", "department", "org_wide"],
+      "gold_severity": ["medium", "high"],
+      "gold_count_estimate": ["~5-10", "~10-50", "50+"],
+      "notes": "Completely open-ended count ('whoever is moving'); floor capacity unknown."
+    },
+    {
+      "id": "a58",
+      "ambiguous": true,
+      "resource_type": "vpn_access",
+      "query": "The people coming in from the conference need temporary remote access.",
+      "gold_scope": ["individual", "team"],
+      "gold_severity": ["low", "medium"],
+      "gold_count_estimate": ["1", "~5-10"],
+      "notes": "Number of conference attendees needing access is unstated; temporary VPN is non-privileged."
+    },
+    {
+      "id": "a59",
+      "ambiguous": true,
+      "resource_type": "password_reset",
+      "query": "The database connection strings in our app configs need to be updated with new credentials.",
+      "gold_scope": ["individual", "team"],
+      "gold_severity": ["high"],
+      "gold_count_estimate": ["1", "~5-10"],
+      "notes": "Application database credentials are privileged production secrets; number of impacted configs/services is unstated."
+    },
+    {
+      "id": "a60",
+      "ambiguous": true,
+      "resource_type": "shared_drive_access",
+      "query": "Share the customer research findings with the cross-functional team.",
+      "gold_scope": ["team", "department"],
+      "gold_severity": ["medium", "high"],
+      "gold_count_estimate": ["~5-10", "~10-50"],
+      "notes": "'Cross-functional team' size is undefined; customer research data has privacy sensitivity that may push severity depending on PII content."
+    },
+    {
+      "id": "a61",
+      "ambiguous": true,
+      "resource_type": "tool_install",
+      "query": "Can we get the AI code assistant licensed for developers who want it?",
+      "gold_scope": ["individual", "team", "department"],
+      "gold_severity": ["low", "medium"],
+      "gold_count_estimate": ["1", "~5-10", "~10-50"],
+      "notes": "Opt-in scope across an unspecified developer population; tool is non-privileged but uptake scale is unknown."
+    },
+    {
+      "id": "a62",
+      "ambiguous": true,
+      "resource_type": "software_access",
+      "query": "Grant the incident response team access to all the logs they need.",
+      "gold_scope": ["team"],
+      "gold_severity": ["high"],
+      "gold_count_estimate": ["~5-10", "~10-50"],
+      "notes": "Incident response log access is privileged (security data); team size and exact log scope both unstated."
+    },
+    {
+      "id": "a63",
+      "ambiguous": true,
+      "resource_type": "admin_access",
+      "query": "A few of us need access to the secrets manager to rotate credentials for the release.",
+      "gold_scope": ["individual", "team"],
+      "gold_severity": ["high"],
+      "gold_count_estimate": ["1", "~5-10"],
+      "notes": "Secrets manager access is unambiguously privileged => severity pinned high; 'a few of us' leaves count vague."
+    },
+    {
+      "id": "a64",
+      "ambiguous": true,
+      "resource_type": "hardware_request",
+      "query": "We need to kit out the new floor with workstations.",
+      "gold_scope": ["department", "org_wide"],
+      "gold_severity": ["high"],
+      "gold_count_estimate": ["~10-50", "50+"],
+      "notes": "Floor capacity unknown — could range from 30 to 200 desks; hardware scope and count both maximally ambiguous."
+    },
+    {
+      "id": "a65",
+      "ambiguous": true,
+      "resource_type": "vpn_access",
+      "query": "Set up VPN for our global workforce who travel frequently.",
+      "gold_scope": ["department", "org_wide"],
+      "gold_severity": ["high"],
+      "gold_count_estimate": ["~10-50", "50+"],
+      "notes": "'Global workforce who travel frequently' gives no headcount and spans department to org-wide."
+    },
+    {
+      "id": "a66",
+      "ambiguous": true,
+      "resource_type": "password_reset",
+      "query": "Reset access for the test accounts used by QA.",
+      "gold_scope": ["individual", "team"],
+      "gold_severity": ["low", "medium"],
+      "gold_count_estimate": ["1", "~5-10"],
+      "notes": "Number of QA test accounts unstated; test accounts are lower risk than production credentials but QA team size is unclear."
+    },
+    {
+      "id": "a67",
+      "ambiguous": true,
+      "resource_type": "shared_drive_access",
+      "query": "Make the product roadmap accessible to key stakeholders across the company.",
+      "gold_scope": ["team", "department", "org_wide"],
+      "gold_severity": ["medium", "high"],
+      "gold_count_estimate": ["~5-10", "~10-50", "50+"],
+      "notes": "'Key stakeholders across the company' is maximally vague — could span a small steering committee to hundreds of employees."
+    },
+    {
+      "id": "a68",
+      "ambiguous": true,
+      "resource_type": "software_access",
+      "query": "Please set up accounts on our internal LMS for the new cohort.",
+      "gold_scope": ["individual", "team"],
+      "gold_severity": ["low", "medium"],
+      "gold_count_estimate": ["1", "~5-10"],
+      "notes": "Cohort size unstated; LMS access is non-privileged but scope drives severity."
+    },
+    {
+      "id": "a69",
+      "ambiguous": true,
+      "resource_type": "tool_install",
+      "query": "Roll out the SSO plugin to all our web apps.",
+      "gold_scope": ["org_wide"],
+      "gold_severity": ["high"],
+      "gold_count_estimate": ["~10-50", "50+"],
+      "notes": "Scope is clearly org-wide (all web apps) => severity high; exact number of apps and affected users is unstated."
+    },
+    {
+      "id": "a70",
+      "ambiguous": true,
+      "resource_type": "admin_access",
+      "query": "Give appropriate access to the people managing the new cloud migration.",
+      "gold_scope": ["individual", "team"],
+      "gold_severity": ["high"],
+      "gold_count_estimate": ["1", "~5-10"],
+      "notes": "Cloud migration management implies privileged access => severity pinned high; 'people managing' is vague in count and access level."
+    },
+    {
+      "id": "a71",
+      "ambiguous": true,
+      "resource_type": "hardware_request",
+      "query": "Get the analysts whatever hardware they need for the data science project.",
+      "gold_scope": ["individual", "team"],
+      "gold_severity": ["low", "medium"],
+      "gold_count_estimate": ["1", "~5-10"],
+      "notes": "Analyst count and hardware type both unstated; non-privileged hardware request."
+    },
+    {
+      "id": "a72",
+      "ambiguous": true,
+      "resource_type": "vpn_access",
+      "query": "We need to revoke remote access for ex-employees from the last round of redundancies.",
+      "gold_scope": ["team", "department"],
+      "gold_severity": ["medium", "high"],
+      "gold_count_estimate": ["~5-10", "~10-50"],
+      "notes": "Redundancy headcount unstated; ex-employee VPN revocation is operationally important but scope scale is unclear."
+    },
+    {
+      "id": "a73",
+      "ambiguous": true,
+      "resource_type": "password_reset",
+      "query": "The root credentials for our on-premise servers need to be rotated.",
+      "gold_scope": ["individual", "team"],
+      "gold_severity": ["high"],
+      "gold_count_estimate": ["1", "~5-10"],
+      "notes": "Root credential rotation is unambiguously privileged => severity pinned high; number of servers unstated."
+    },
+    {
+      "id": "a74",
+      "ambiguous": true,
+      "resource_type": "shared_drive_access",
+      "query": "Remove the consultants from our internal documents once they wrap up.",
+      "gold_scope": ["individual", "team"],
+      "gold_severity": ["medium", "high"],
+      "gold_count_estimate": ["1", "~5-10"],
+      "notes": "Consultant count and document sensitivity both unstated; external party removal ranges from low-touch to high-sensitivity."
+    },
+    {
+      "id": "a75",
+      "ambiguous": true,
+      "resource_type": "software_access",
+      "query": "Can we get the ML platform provisioned for the data scientists who need it?",
+      "gold_scope": ["team", "department"],
+      "gold_severity": ["medium", "high"],
+      "gold_count_estimate": ["~5-10", "~10-50"],
+      "notes": "Count of data scientists needing ML platform access unstated; ML infrastructure may have privileged compute/data implications depending on platform."
+    },
+    {
+      "id": "a76",
+      "ambiguous": true,
+      "resource_type": "tool_install",
+      "query": "Deploy the network monitoring agent on our servers.",
+      "gold_scope": ["team", "department", "org_wide"],
+      "gold_severity": ["high"],
+      "gold_count_estimate": ["~5-10", "~10-50", "50+"],
+      "notes": "Number of servers unspecified; network monitoring agents on servers are privileged infrastructure tools => severity pinned high."
+    },
+    {
+      "id": "a77",
+      "ambiguous": true,
+      "resource_type": "admin_access",
+      "query": "Grant the new IT generalist access to manage user accounts.",
+      "gold_scope": ["individual"],
+      "gold_severity": ["medium", "high"],
+      "gold_count_estimate": ["1"],
+      "notes": "Scope is clearly individual, but 'manage user accounts' could mean helpdesk-level (medium) or full directory admin (high)."
+    },
+    {
+      "id": "a78",
+      "ambiguous": true,
+      "resource_type": "hardware_request",
+      "query": "Send equipment to the team members who are now working permanently from home.",
+      "gold_scope": ["team", "department"],
+      "gold_severity": ["medium", "high"],
+      "gold_count_estimate": ["~5-10", "~10-50"],
+      "notes": "Count of permanent WFH employees unstated; could be a small team or a large department cohort."
+    },
+    {
+      "id": "a79",
+      "ambiguous": true,
+      "resource_type": "vpn_access",
+      "query": "Restore VPN access for the team that was accidentally locked out during the firewall update.",
+      "gold_scope": ["team", "department"],
+      "gold_severity": ["medium", "high"],
+      "gold_count_estimate": ["~5-10", "~10-50"],
+      "notes": "Firewall update blast radius determines team size; accidental lockout scope is genuinely unclear."
+    },
+    {
+      "id": "a80",
+      "ambiguous": true,
+      "resource_type": "password_reset",
+      "query": "Please help with login issues for the workshop attendees tomorrow morning.",
+      "gold_scope": ["team", "department"],
+      "gold_severity": ["low", "medium"],
+      "gold_count_estimate": ["~5-10", "~10-50"],
+      "notes": "Workshop size unstated; login access to training/workshop tools is non-privileged but headcount range is wide."
+    },
+    {
+      "id": "a81",
+      "ambiguous": true,
+      "resource_type": "shared_drive_access",
+      "query": "We need to open up the engineering design docs to the broader team for visibility.",
+      "gold_scope": ["team", "department", "org_wide"],
+      "gold_severity": ["medium", "high"],
+      "gold_count_estimate": ["~5-10", "~10-50", "50+"],
+      "notes": "'Broader team' and 'for visibility' gives no count signal; engineering IP sensitivity adds severity uncertainty."
+    },
+    {
+      "id": "a82",
+      "ambiguous": true,
+      "resource_type": "software_access",
+      "query": "Onboard the new wave of users to our customer success platform.",
+      "gold_scope": ["team", "department"],
+      "gold_severity": ["medium", "high"],
+      "gold_count_estimate": ["~5-10", "~10-50"],
+      "notes": "'New wave' gives no count; customer success platform scale could imply a team or department provisioning."
+    },
+    {
+      "id": "a83",
+      "ambiguous": true,
+      "resource_type": "admin_access",
+      "query": "Give the infrastructure leads the access they need to perform the quarterly maintenance.",
+      "gold_scope": ["individual", "team"],
+      "gold_severity": ["high"],
+      "gold_count_estimate": ["1", "~5-10"],
+      "notes": "Infrastructure maintenance access is privileged => severity pinned high; number of 'leads' is unstated."
+    },
+    {
+      "id": "a84",
+      "ambiguous": true,
+      "resource_type": "tool_install",
+      "query": "Install the approved browser extensions on company machines.",
+      "gold_scope": ["team", "department", "org_wide"],
+      "gold_severity": ["medium", "high"],
+      "gold_count_estimate": ["~5-10", "~10-50", "50+"],
+      "notes": "'Company machines' could mean all org machines or a specific department fleet; scale completely unspecified."
+    },
+    {
+      "id": "a85",
+      "ambiguous": true,
+      "resource_type": "hardware_request",
+      "query": "We need additional storage for the team's data archiving needs.",
+      "gold_scope": ["team", "department"],
+      "gold_severity": ["low", "medium"],
+      "gold_count_estimate": ["~5-10", "~10-50"],
+      "notes": "Storage quantity and team size both unstated; hardware provisioning is non-privileged."
+    },
+    {
+      "id": "a86",
+      "ambiguous": true,
+      "resource_type": "vpn_access",
+      "query": "The field technicians are having trouble connecting — can you sort out their remote access?",
+      "gold_scope": ["team", "department"],
+      "gold_severity": ["medium", "high"],
+      "gold_count_estimate": ["~5-10", "~10-50"],
+      "notes": "Field technician headcount unstated; remote access troubleshooting scope is unclear."
+    },
+    {
+      "id": "a87",
+      "ambiguous": true,
+      "resource_type": "password_reset",
+      "query": "Force a password reset for any accounts that haven't changed their credentials in over a year.",
+      "gold_scope": ["team", "department", "org_wide"],
+      "gold_severity": ["medium", "high"],
+      "gold_count_estimate": ["~5-10", "~10-50", "50+"],
+      "notes": "Scope of stale accounts is completely unknown — could be a handful or hundreds depending on org hygiene."
+    },
+    {
+      "id": "a88",
+      "ambiguous": true,
+      "resource_type": "shared_drive_access",
+      "query": "Open up the employee handbook folder to everyone in the company.",
+      "gold_scope": ["org_wide"],
+      "gold_severity": ["low", "medium"],
+      "gold_count_estimate": ["~10-50", "50+"],
+      "notes": "Scope is clearly org-wide but company size is unstated; handbook is low-sensitivity content => severity low-to-medium."
+    },
+    {
+      "id": "a89",
+      "ambiguous": true,
+      "resource_type": "software_access",
+      "query": "Provision accounts on the new internal developer portal for the teams that need it.",
+      "gold_scope": ["team", "department"],
+      "gold_severity": ["medium", "high"],
+      "gold_count_estimate": ["~5-10", "~10-50"],
+      "notes": "'Teams that need it' is opt-in across an undefined population; developer portal may expose internal APIs or configs."
+    },
+    {
+      "id": "a90",
+      "ambiguous": true,
+      "resource_type": "admin_access",
+      "query": "The security team needs to be able to push policy updates to all endpoints.",
+      "gold_scope": ["team"],
+      "gold_severity": ["high"],
+      "gold_count_estimate": ["~5-10", "~10-50"],
+      "notes": "Endpoint policy management is privileged => severity pinned high; security team size (small ops vs large team) is unstated."
+    },
+    {
+      "id": "a91",
+      "ambiguous": true,
+      "resource_type": "tool_install",
+      "query": "Set up the data loss prevention tool wherever it's needed.",
+      "gold_scope": ["team", "department", "org_wide"],
+      "gold_severity": ["high"],
+      "gold_count_estimate": ["~5-10", "~10-50", "50+"],
+      "notes": "DLP deployment scope is completely open; security tooling on endpoints is privileged keeping severity high regardless."
+    },
+    {
+      "id": "a92",
+      "ambiguous": true,
+      "resource_type": "hardware_request",
+      "query": "Get docking stations for the people switching to the hybrid work model.",
+      "gold_scope": ["team", "department"],
+      "gold_severity": ["low", "medium"],
+      "gold_count_estimate": ["~5-10", "~10-50"],
+      "notes": "Hybrid work adopter count unstated; docking stations are non-privileged hardware."
+    },
+    {
+      "id": "a93",
+      "ambiguous": true,
+      "resource_type": "vpn_access",
+      "query": "Set up access for the team moving to the new branch office in Berlin.",
+      "gold_scope": ["team", "department"],
+      "gold_severity": ["medium", "high"],
+      "gold_count_estimate": ["~5-10", "~10-50"],
+      "notes": "Berlin office headcount unstated; 'team' could mean a small squad or a full department relocation."
+    },
+    {
+      "id": "a94",
+      "ambiguous": true,
+      "resource_type": "shared_drive_access",
+      "query": "Remove internal access from the people who finished the freelance contract.",
+      "gold_scope": ["individual", "team"],
+      "gold_severity": ["low", "medium"],
+      "gold_count_estimate": ["1", "~5-10"],
+      "notes": "Freelancer count and folder sensitivity both unstated; revoke scope ranges from one person to a small team."
+    },
+    {
+      "id": "a95",
+      "ambiguous": true,
+      "resource_type": "software_access",
+      "query": "Extend trial access to the business intelligence tool for folks in finance.",
+      "gold_scope": ["team", "department"],
+      "gold_severity": ["medium", "high"],
+      "gold_count_estimate": ["~5-10", "~10-50"],
+      "notes": "Finance team size unstated; BI access to financial data is sensitive, pushing severity toward medium-to-high."
+    },
+    {
+      "id": "a96",
+      "ambiguous": true,
+      "resource_type": "admin_access",
+      "query": "Someone on the data team needs write access to the reporting database.",
+      "gold_scope": ["individual", "team"],
+      "gold_severity": ["high"],
+      "gold_count_estimate": ["1", "~5-10"],
+      "notes": "Database write access is privileged => severity pinned high; 'someone' is genuinely ambiguous on count."
+    },
+    {
+      "id": "a97",
+      "ambiguous": true,
+      "resource_type": "password_reset",
+      "query": "Help with password issues for users who are struggling after the identity provider migration.",
+      "gold_scope": ["team", "department", "org_wide"],
+      "gold_severity": ["medium", "high"],
+      "gold_count_estimate": ["~5-10", "~10-50", "50+"],
+      "notes": "Migration impact radius unknown; 'users who are struggling' gives no bound on scale."
+    },
+    {
+      "id": "a98",
+      "ambiguous": true,
+      "resource_type": "hardware_request",
+      "query": "Order enough peripherals for the people who joined this quarter.",
+      "gold_scope": ["team", "department"],
+      "gold_severity": ["low", "medium"],
+      "gold_count_estimate": ["~5-10", "~10-50"],
+      "notes": "Quarterly headcount growth is unstated; peripheral orders are non-privileged."
+    },
+    {
+      "id": "a99",
+      "ambiguous": true,
+      "resource_type": "tool_install",
+      "query": "Push the logging agent to our cloud instances.",
+      "gold_scope": ["team", "department", "org_wide"],
+      "gold_severity": ["high"],
+      "gold_count_estimate": ["~5-10", "~10-50", "50+"],
+      "notes": "Number of cloud instances unspecified; logging agents on cloud infra are privileged system-level tools => severity pinned high."
+    },
+    {
+      "id": "a100",
+      "ambiguous": true,
+      "resource_type": "software_access",
+      "query": "Can we get licenses for the productivity suite for anyone who asks?",
+      "gold_scope": ["individual", "team", "department", "org_wide"],
+      "gold_severity": ["low", "medium"],
+      "gold_count_estimate": ["1", "~5-10", "~10-50", "50+"],
+      "notes": "Maximally open-ended opt-in provisioning across an unspecified population; productivity suite is non-privileged keeping severity low-to-medium."
+    }
+  ]
+}
